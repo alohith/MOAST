@@ -81,6 +81,7 @@ packaging==23.2
 pandas==2.2.0
 pandocfilters==1.5.1
 parso==0.8.3
+patsy==0.5.6
 pexpect==4.9.0
 pillow==10.2.0
 platformdirs==4.2.0
@@ -106,11 +107,13 @@ rfc3986-validator==0.1.1
 rpds-py==0.18.0
 scikit-learn==1.4.1.post1
 scipy==1.12.0
+seaborn==0.13.2
 Send2Trash==1.8.2
 six==1.16.0
 sniffio==1.3.0
 soupsieve==2.5
 stack-data==0.6.3
+statsmodels==0.14.1
 sympy==1.12
 terminado==0.18.0
 threadpoolctl==3.3.0
