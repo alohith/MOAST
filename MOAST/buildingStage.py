@@ -5,6 +5,8 @@ from io import StringIO
 import pandas as pd, numpy as np
 import time, timeit, cython
 from numba import jit, prange, njit
+import KDEpy as kdeOpt
+import math
 
 
 @jit(nopython=True, parallel=True)
@@ -59,43 +61,63 @@ def _pairwiseCorrProcess(exp_df, ref_df, distance=True):
         )
     return data
 
-def drawfromfeatureKDE(featureData,numDraws:int = 15000,noiseModel:str ='poisson',gridsize:int =1000,logTransform:bool=False,col:str=None):
-    import KDEpy as kdeOpt
-    
+
+def drawfromfeatureKDE(
+    featureData,
+    numDraws: int = 15000,
+    noiseModel: str = "poisson",
+    gridsize: int = 1000,
+    logTransform: bool = False,
+    col: str = None,
+):
     x = np.asarray(featureData)
     if logTransform:
         x = np.log(x)
     try:
-        kde_support, kde_pdf = kdeOpt.FFTKDE(bw='silverman',kernel='gaussian').fit(x).evaluate(gridsize)
+        kde_support, kde_pdf = (
+            kdeOpt.FFTKDE(bw="silverman", kernel="gaussian").fit(x).evaluate(gridsize)
+        )
     except ValueError:
         # print(data[col].describe())
-        kde_support, kde_pdf = kdeOpt.FFTKDE(bw='silverman',kernel='gaussian').fit(np.nan_to_num(x)).evaluate(gridsize)
+        kde_support, kde_pdf = (
+            kdeOpt.FFTKDE(bw="silverman", kernel="gaussian")
+            .fit(np.nan_to_num(x))
+            .evaluate(gridsize)
+        )
     # kde = sm.nonparametric.kde.KDEUnivariate(x)
     # kde.fit(gridsize=gridsize)
     if logTransform:
         kdeChoices = math.e**kde_support
     else:
         kdeChoices = kde_support
-    #here the needs to be a support mutator in order to add uniform noise
-    scaleWeight = np.var(x)# or scaleWeight = std(x)  ???
-    noise = (1/gridsize)*scaleWeight
-    if noiseModel == 'poisson':
+    # here the needs to be a support mutator in order to add uniform noise
+    scaleWeight = np.var(x)  # or scaleWeight = std(x)  ???
+    noise = (1 / gridsize) * scaleWeight
+    if noiseModel == "poisson":
         try:
-            noise_addition = np.random.poisson(lam=scaleWeight**(1/gridsize),size=kdeChoices.shape)
+            noise_addition = np.random.poisson(
+                lam=scaleWeight ** (1 / gridsize), size=kdeChoices.shape
+            )
         except ValueError:
-            noise_addition = np.random.poisson(lam=15,size=kdeChoices.shape)
-    elif noiseModel == 'normal':
-        noise_addition = np.random.normal(np.mean(x),np.std(x),kdeChoices.shape)
-    elif noiseModel == 'normal+':
-        noise_addition = np.random.normal(np.mean(x),np.std(x),kdeChoices.shape) + ((1/gridsize)*scaleWeight)
-    elif noiseModel == 'normal_scaledSigma':
-        noise_addition = np.random.normal(np.mean(x),scaleWeight**(1/gridsize),kdeChoices.shape)
-    elif noiseModel == 'scaled':
-        noise_addition = np.random.normal(0,1,kdeChoices.shape)*noise
-    elif noiseModel == 'unitNormal':
-        noise_addition = np.random.normal(0,1,kdeChoices.shape)
-    elif noiseModel == 'uniform':
-        noise_addition = np.random.uniform(0,1/gridsize,kdeChoices.shape)*scaleWeight
+            noise_addition = np.random.poisson(lam=15, size=kdeChoices.shape)
+    elif noiseModel == "normal":
+        noise_addition = np.random.normal(np.mean(x), np.std(x), kdeChoices.shape)
+    elif noiseModel == "normal+":
+        noise_addition = np.random.normal(np.mean(x), np.std(x), kdeChoices.shape) + (
+            (1 / gridsize) * scaleWeight
+        )
+    elif noiseModel == "normal_scaledSigma":
+        noise_addition = np.random.normal(
+            np.mean(x), scaleWeight ** (1 / gridsize), kdeChoices.shape
+        )
+    elif noiseModel == "scaled":
+        noise_addition = np.random.normal(0, 1, kdeChoices.shape) * noise
+    elif noiseModel == "unitNormal":
+        noise_addition = np.random.normal(0, 1, kdeChoices.shape)
+    elif noiseModel == "uniform":
+        noise_addition = (
+            np.random.uniform(0, 1 / gridsize, kdeChoices.shape) * scaleWeight
+        )
     elif noiseModel == None:
         noise_addition = 0.5
     else:
@@ -103,53 +125,80 @@ def drawfromfeatureKDE(featureData,numDraws:int = 15000,noiseModel:str ='poisson
     kde_pdf += noise_addition
     # return kdeChoices,kde_pdf
     randomDrawsFromKDE = np.empty(numDraws)
-    for i in np.arange(0,numDraws):
+    for i in np.arange(0, numDraws):
         try:
-            randomDrawsFromKDE[i] = np.random.choice(kdeChoices,p=kde_pdf/kde_pdf.sum())
+            randomDrawsFromKDE[i] = np.random.choice(
+                kdeChoices, p=kde_pdf / kde_pdf.sum()
+            )
         except ValueError:
-            print(col,pd.Series(kde_pdf).describe()))
-            return(np.zeros(numDraws)+noise_addition)
+            print(col, pd.Series(kde_pdf).describe())
+            return np.zeros(numDraws) + noise_addition
     return randomDrawsFromKDE
 
 
 class Build:
-    def __init__(self, dataset: pd.DataFrame, nullData: pd.DataFrame = None, 
-                 nullOption: str = '15KSample',noiseModel:str=None) -> None:
+    def __init__(
+        self,
+        dataset: pd.DataFrame,
+        nullData: pd.DataFrame = None,
+        nullOption: str = "15KSample",
+        noiseModel: str = None,
+    ) -> None:
         self.dataset = dataset.fillna(0)
         self.nullSet = self.dataset if nullData is None else nullData
         self.nullOption = nullOption
         self.noiseModel = noiseModel
+        self.refDist = None
 
     def _createNull(self):
-        if self.nullOption == '15KSample':
+        if self.nullOption == "15KSample":
             return self.nullSet.copy().sample(n=15000, replace=True)
         else:
-            
+
             featCols = self.nullSet.columns
-            newRandCPfingerprints = pd.DataFrame(index=pd.RangeIndex(15000), columns=featCols)
+            newRandCPfingerprints = pd.DataFrame(
+                index=pd.RangeIndex(15000), columns=featCols
+            )
             for col in featCols:
-                if nullOption == 'unitNormal':
-                    newRandCPfingerprints[col] = np.random.normal(0,1,15000)
-                elif nullOption =='featureNormal':
-                    newRandCPfingerprints[col] = np.random.normal(np.mean(self.nullSet[col]),np.std(self.nullSet[col]),15000)
-                elif nullOption =='flattenKDE':
+                if self.nullOption == "unitNormal":
+                    newRandCPfingerprints[col] = np.random.normal(0, 1, 15000)
+                elif self.nullOption == "featureNormal":
+                    newRandCPfingerprints[col] = np.random.normal(
+                        np.mean(self.nullSet[col]), np.std(self.nullSet[col]), 15000
+                    )
+                elif self.nullOption == "flattenKDE":
                     # kdeDraws[col] = drawfromfeatureKDE(data[col],100000,col=col)
-                    newRandCPfingerprints[col] = drawfromfeatureKDE(self.nullSet[col],15000,col=col,noiseModel=self.noiseModel)#noiseModel='normal_scaledSigma')
+                    newRandCPfingerprints[col] = drawfromfeatureKDE(
+                        self.nullSet[col], 15000, col=col, noiseModel=self.noiseModel
+                    )  # noiseModel='normal_scaledSigma')
 
             return newRandCPfingerprints
 
+    def _getClasses(self):
+        pass
+
     def build(self, distance=True):
         nullModel = self._createNull().fillna(0)
+        print(nullModel.index)
+
         refDist = _pairwiseCorrProcess(
             exp_df=self.dataset, ref_df=nullModel, distance=distance
         )
-        refDist = pd.DataFrame({refDist.index[i]: d for i, d in enumerate(refDist)})
+        refDist = pd.DataFrame(refDist.tolist(), index=refDist.index).T
+        refDist.index = nullModel.index
+        self.refDist = refDist
+
+        ###### TODO: ADD CLASS AGG ######
+        ###### TODO: Dictionary className: KDEsupport, PDF ######
+
+        ###### TODO: ADD pickle (in MOAST class) ######
         return refDist
 
 
 ########################### TESTING BLOCK ###########################
 # def main():
-#     testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/ImmunoCP/designerHD_concats/SP20312_DMSO+LPS-DMSO_noCts_histdiffpyROWSORT.csv"
+#     # testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/ImmunoCP/designerHD_concats/SP20312_DMSO+LPS-DMSO_noCts_histdiffpyROWSORT.csv"
+#     testdf = "/Users/dterciano/Desktop/LokeyLabFiles/ImmunoCP/designerHD_concats/LPS-DMSO_longConcat_hd.csv"
 #     testData = pd.read_csv(testdf, index_col=0)
 
 #     b = Build(dataset=testData)
