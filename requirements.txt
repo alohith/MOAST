@@ -14,6 +14,7 @@ charset-normalizer==3.3.2
 comm==0.2.1
 contourpy==1.2.0
 cycler==0.12.1
+Cython==3.0.8
 debugpy==1.8.1
 decorator==5.1.1
 defusedxml==0.7.1
@@ -52,6 +53,7 @@ jupyterlab_server==2.25.3
 jupyterlab_widgets==3.0.10
 KDEpy==1.1.8
 kiwisolver==1.4.5
+llvmlite==0.42.0
 MarkupSafe==2.1.5
 matplotlib==3.8.3
 matplotlib-inline==0.1.6
@@ -64,6 +66,7 @@ nest-asyncio==1.6.0
 networkx==3.2.1
 notebook==7.1.0
 notebook_shim==0.2.4
+numba==0.59.0
 numpy==1.26.4
 nvidia-cublas-cu11==11.11.3.6
 nvidia-cuda-cupti-cu11==11.8.87
@@ -90,6 +93,7 @@ prompt-toolkit==3.0.43
 psutil==5.9.8
 ptyprocess==0.7.0
 pure-eval==0.2.2
+pyarrow==15.0.0
 pycparser==2.21
 Pygments==2.17.2
 pyparsing==3.1.1
