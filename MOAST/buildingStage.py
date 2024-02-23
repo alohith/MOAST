@@ -143,12 +143,19 @@ class Build:
         nullData: pd.DataFrame = None,
         nullOption: str = "15KSample",
         noiseModel: str = None,
+        classesDf: pd.DataFrame = None,
+        on=None,
+        classesCol=None,
     ) -> None:
         self.dataset = dataset.fillna(0)
         self.nullSet = self.dataset if nullData is None else nullData
         self.nullOption = nullOption
         self.noiseModel = noiseModel
         self.refDist = None
+        self.classesDf = classesDf
+
+        self.on = on
+        self.classesCol = classesCol
 
     def _createNull(self):
         if self.nullOption == "15KSample":
@@ -174,40 +181,68 @@ class Build:
 
             return newRandCPfingerprints
 
-    def _getClasses(self):
-        pass
+    def _getClasses(self, on: str, classCol: str):
+        mergeDf = pd.merge(
+            left=self.refDist,
+            right=self.classesDf[[on, classCol]],
+            left_index=True,
+            right_on=on,
+        )
+        mergeDf.reset_index(inplace=True)
+        mergeDf.drop(on, axis=1)
+        mergeDf = mergeDf.set_index(classCol)
+        return mergeDf
 
     def build(self, distance=True):
         nullModel = self._createNull().fillna(0)
-        print(nullModel.index)
 
         refDist = _pairwiseCorrProcess(
             exp_df=self.dataset, ref_df=nullModel, distance=distance
         )
         refDist = pd.DataFrame(refDist.tolist(), index=refDist.index).T
         refDist.index = nullModel.index
-        self.refDist = refDist
 
         ###### TODO: ADD CLASS AGG ######
-        ###### TODO: Dictionary className: KDEsupport, PDF ######
+        if self.classesDf is not None:
+            refDist = self._getClasses(on=self.on, classCol=self.classesCol)
+            refDist = refDist.groupby(level=self.classesCol).agg("mean")
+        self.refDist = refDist
+
+        ###### TODO: Dictionary {className: KDEsupport, PDF} ######
 
         ###### TODO: ADD pickle (in MOAST class) ######
         return refDist
 
 
 ########################### TESTING BLOCK ###########################
-# def main():
-#     # testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/ImmunoCP/designerHD_concats/SP20312_DMSO+LPS-DMSO_noCts_histdiffpyROWSORT.csv"
-#     testdf = "/Users/dterciano/Desktop/LokeyLabFiles/ImmunoCP/designerHD_concats/LPS-DMSO_longConcat_hd.csv"
-#     testData = pd.read_csv(testdf, index_col=0)
+def main():
+    # testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/ImmunoCP/designerHD_concats/SP20312_DMSO+LPS-DMSO_noCts_histdiffpyROWSORT.csv"
+    testdf = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
+    annots = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
+    annots = pd.read_csv(annots)
+    testData = pd.read_csv(testdf, index_col=0)
+    testNullData = testData.copy()
 
-#     b = Build(dataset=testData)
-#     refDist = b.build()
-#     print(refDist)
+    def renameX(x):
+        strSplit = x.split("._.")[0]
+        strSplit = strSplit.replace("_10uM", "")
+        return strSplit
+
+    testNullData.rename(index=lambda x: renameX(x), inplace=True)
+
+    b = Build(
+        dataset=testData,
+        nullData=testNullData,
+        classesDf=annots,
+        on="Name",
+        classesCol="GPT-4 Acronym",
+    )
+    refDist = b.build()
+    print(refDist)
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
 
 ## OUTPUT:
 #        BMS-345541_0.016uM  BMS-345541_0.016uM_+_Gardiquimod_0.016uM  ...  VM01.3_+_QNZ-10_0.4uM       NaN
