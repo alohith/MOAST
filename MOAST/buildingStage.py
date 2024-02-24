@@ -221,9 +221,10 @@ class Build:
 
 ########################### TESTING BLOCK ###########################
 def main():
-    # testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/ImmunoCP/designerHD_concats/SP20312_DMSO+LPS-DMSO_noCts_histdiffpyROWSORT.csv"
-    testdf = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
-    annots = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
+    testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
+    # testdf = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
+    # annots = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
+    annots = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
     annots = pd.read_csv(annots)
     testData = pd.read_csv(testdf, index_col=0)
     testNullData = testData.copy()
