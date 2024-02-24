@@ -232,7 +232,7 @@ def main():
 
     def renameX(x):
         strSplit = x.split("._.")[0]
-        strSplit = strSplit.replace("_10uM", "")
+        strSplit, _, _ = strSplit.rpartition("_")
         return strSplit
 
     testNullData.rename(index=lambda x: renameX(x), inplace=True)
