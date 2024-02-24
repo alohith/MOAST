@@ -181,15 +181,16 @@ class Build:
 
             return newRandCPfingerprints
 
-    def _getClasses(self, on: str, classCol: str):
+    def _getClasses(self, left: pd.DataFrame, on: str, classCol: str):
         mergeDf = pd.merge(
-            left=self.refDist,
+            left=left,
             right=self.classesDf[[on, classCol]],
             left_index=True,
             right_on=on,
+            how="left",
         )
         mergeDf.reset_index(inplace=True)
-        mergeDf.drop(on, axis=1)
+        mergeDf.drop(on, axis=1, inplace=True)
         mergeDf = mergeDf.set_index(classCol)
         return mergeDf
 
@@ -204,8 +205,12 @@ class Build:
 
         ###### TODO: ADD CLASS AGG ######
         if self.classesDf is not None:
-            refDist = self._getClasses(on=self.on, classCol=self.classesCol)
-            refDist = refDist.groupby(level=self.classesCol).agg("mean")
+            refDist = self._getClasses(
+                left=refDist, on=self.on, classCol=self.classesCol
+            )
+            print(refDist)
+            refDist = refDist.groupby(level=self.classesCol).mean()
+            # TODO: DELETE INDEX COL FROM OUTPUT
         self.refDist = refDist
 
         ###### TODO: Dictionary {className: KDEsupport, PDF} ######
