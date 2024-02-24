@@ -189,8 +189,8 @@ class Build:
             right_on=on,
             how="left",
         )
-        mergeDf.reset_index(inplace=True)
-        mergeDf.drop(on, axis=1, inplace=True)
+        mergeDf.reset_index(inplace=True, drop=True)
+        mergeDf.drop([on], axis=1, inplace=True)
         mergeDf = mergeDf.set_index(classCol)
         return mergeDf
 
@@ -208,7 +208,7 @@ class Build:
             refDist = self._getClasses(
                 left=refDist, on=self.on, classCol=self.classesCol
             )
-            print(refDist)
+            # print(refDist)
             refDist = refDist.groupby(level=self.classesCol).mean()
             # TODO: DELETE INDEX COL FROM OUTPUT
         self.refDist = refDist
@@ -227,6 +227,7 @@ def main():
     annots = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
     annots = pd.read_csv(annots)
     testData = pd.read_csv(testdf, index_col=0)
+    print(testData.shape)
     testNullData = testData.copy()
 
     def renameX(x):
