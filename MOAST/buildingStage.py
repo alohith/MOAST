@@ -5,8 +5,9 @@ from io import StringIO
 import pandas as pd, numpy as np
 import time, timeit, cython
 from numba import jit, prange, njit
-import KDEpy as kdeOpt
+import KDEpy as kde
 import math
+import pyarrow as pa
 
 
 @jit(nopython=True, parallel=True)
@@ -75,12 +76,12 @@ def drawfromfeatureKDE(
         x = np.log(x)
     try:
         kde_support, kde_pdf = (
-            kdeOpt.FFTKDE(bw="silverman", kernel="gaussian").fit(x).evaluate(gridsize)
+            kde.FFTKDE(bw="silverman", kernel="gaussian").fit(x).evaluate(gridsize)
         )
     except ValueError:
         # print(data[col].describe())
         kde_support, kde_pdf = (
-            kdeOpt.FFTKDE(bw="silverman", kernel="gaussian")
+            kde.FFTKDE(bw="silverman", kernel="gaussian")
             .fit(np.nan_to_num(x))
             .evaluate(gridsize)
         )
@@ -210,23 +211,36 @@ class Build:
             )
             # print(refDist)
             refDist = refDist.groupby(level=self.classesCol).mean()
-            # TODO: DELETE INDEX COL FROM OUTPUT
         self.refDist = refDist
 
         ###### TODO: Dictionary {className: KDEsupport, PDF} ######
+        kdeDict = {}
+        for name, row in self.refDist.iterrows():
+            kdeRes = kde.FFTKDE(bw="silverman", kernel="gaussian")
+            kdeRes.fit(
+                np.nan_to_num(row.to_numpy().flatten()),
+                np.linspace(0, 2, len(row)),
+            )
+            kde_support, kde_pdf = kdeRes.evaluate(len(row))
+            kdeDict[name] = (kde_support, kde_pdf)
 
         ###### TODO: ADD pickle (in MOAST class) ######
-        return refDist
+
+        return kdeDict
+
+    @property
+    def getRefDist(self):
+        return self.refDist
 
 
 ########################### TESTING BLOCK ###########################
 def main():
-    testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
-    # testdf = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
-    # annots = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
-    annots = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
-    annots = pd.read_csv(annots)
-    testData = pd.read_csv(testdf, index_col=0)
+    # testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
+    testdf = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
+    annots = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
+    # annots = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
+    annots = pd.read_csv(annots, engine="pyarrow")
+    testData = pd.read_csv(testdf, index_col=0, engine="pyarrow")
     print(testData.shape)
     testNullData = testData.copy()
 
@@ -245,7 +259,7 @@ def main():
         classesCol="GPT-4 Acronym",
     )
     refDist = b.build()
-    print(refDist)
+    print(b.getRefDist)
 
 
 if __name__ == "__main__":
