@@ -8,7 +8,6 @@ from numba import jit, prange, njit
 import KDEpy as kde
 import math
 import pyarrow as pa
-from __init__ import MoastException
 
 
 @jit(nopython=True, parallel=True)
@@ -230,49 +229,13 @@ class Build:
         return kdeDict
 
     def to_pickle(self, outPath, **kwargs):
+        from . import MoastException  # prevents circular import
+
         if self.refDist is not None:
             self.refDist.to_pickle(outPath, **kwargs)
         else:
-            raise MoastException(message="This class as not been built yet")
+            raise MoastException(message="This class has not been built yet")
 
     @property
     def getRefDist(self):
         return self.refDist
-
-
-########################### TESTING BLOCK ###########################
-
-# def main():
-#     testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
-#     annots = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
-
-#     # testdf = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
-#     # annots = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
-
-#     annots = pd.read_csv(annots, engine="pyarrow")
-#     testData = pd.read_csv(testdf, index_col=0, engine="pyarrow")
-#     print(testData.shape)
-#     testNullData = testData.copy()
-
-#     def renameX(x):
-#         strSplit = x.split("._.")[0]
-#         strSplit, _, _ = strSplit.rpartition("_")
-#         return strSplit
-
-#     testNullData.rename(index=lambda x: renameX(x), inplace=True)
-
-#     b = Build(
-#         dataset=testData,
-#         nullData=testNullData,
-#         classesDf=annots,
-#         on="Name",
-#         classesCol="GPT-4 Acronym",
-#     )
-#     refDist = b.build()
-#     b.to_pickle("test.csv.pkl")
-#     print(b.getRefDist)
-#     print(refDist)
-
-
-# if __name__ == "__main__":
-#     main()
