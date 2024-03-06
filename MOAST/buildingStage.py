@@ -241,53 +241,38 @@ class Build:
 
 
 ########################### TESTING BLOCK ###########################
-def main():
-    testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
-    annots = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
 
-    # testdf = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
-    # annots = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
+# def main():
+#     testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
+#     annots = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
 
-    annots = pd.read_csv(annots, engine="pyarrow")
-    testData = pd.read_csv(testdf, index_col=0, engine="pyarrow")
-    print(testData.shape)
-    testNullData = testData.copy()
+#     # testdf = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
+#     # annots = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
 
-    def renameX(x):
-        strSplit = x.split("._.")[0]
-        strSplit, _, _ = strSplit.rpartition("_")
-        return strSplit
+#     annots = pd.read_csv(annots, engine="pyarrow")
+#     testData = pd.read_csv(testdf, index_col=0, engine="pyarrow")
+#     print(testData.shape)
+#     testNullData = testData.copy()
 
-    testNullData.rename(index=lambda x: renameX(x), inplace=True)
+#     def renameX(x):
+#         strSplit = x.split("._.")[0]
+#         strSplit, _, _ = strSplit.rpartition("_")
+#         return strSplit
 
-    b = Build(
-        dataset=testData,
-        nullData=testNullData,
-        classesDf=annots,
-        on="Name",
-        classesCol="GPT-4 Acronym",
-    )
-    refDist = b.build()
-    b.to_pickle("test.csv.pkl")
-    print(b.getRefDist)
-    print(refDist)
+#     testNullData.rename(index=lambda x: renameX(x), inplace=True)
+
+#     b = Build(
+#         dataset=testData,
+#         nullData=testNullData,
+#         classesDf=annots,
+#         on="Name",
+#         classesCol="GPT-4 Acronym",
+#     )
+#     refDist = b.build()
+#     b.to_pickle("test.csv.pkl")
+#     print(b.getRefDist)
+#     print(refDist)
 
 
-if __name__ == "__main__":
-    main()
-
-## OUTPUT:
-#        BMS-345541_0.016uM  BMS-345541_0.016uM_+_Gardiquimod_0.016uM  ...  VM01.3_+_QNZ-10_0.4uM       NaN
-# 0                0.286582                                  0.235619  ...               0.073456  0.212760
-# 1                0.242252                                  0.410468  ...               0.234001  0.286011
-# 2                0.156114                                  0.304933  ...               0.183598  0.350290
-# 3                0.283838                                  0.108880  ...               0.090321  0.178747
-# 4                0.264897                                  0.237458  ...               0.132649  0.242708
-# ...                   ...                                       ...  ...                    ...       ...
-# 14995            0.156114                                  0.304933  ...               0.183598  0.350290
-# 14996            0.379619                                  0.177450  ...               0.084122  0.199537
-# 14997            0.709235                                  0.959712  ...               0.687754  0.848354
-# 14998            0.670603                                  0.516769  ...               0.465857  0.513841
-# 14999            0.473693                                  0.467027  ...               0.414266  0.603866
-
-# [15000 rows x 384 columns]
+# if __name__ == "__main__":
+#     main()
