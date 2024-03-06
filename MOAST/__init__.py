@@ -1,7 +1,9 @@
-from buildingStage import *
-
-
 ####### TODO: MOAST GOES HERE #######
+
+
+class MoastException(Exception):
+    def __init__(self, message, *args: object) -> None:
+        super().__init__(message, *args)
 
 
 # global steps:

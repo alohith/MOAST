@@ -8,6 +8,7 @@ from numba import jit, prange, njit
 import KDEpy as kde
 import math
 import pyarrow as pa
+from __init__ import MoastException
 
 
 @jit(nopython=True, parallel=True)
@@ -228,6 +229,12 @@ class Build:
 
         return kdeDict
 
+    def to_pickle(self, outPath, **kwargs):
+        if self.refDist is not None:
+            self.refDist.to_pickle(outPath, **kwargs)
+        else:
+            raise MoastException(message="This class as not been built yet")
+
     @property
     def getRefDist(self):
         return self.refDist
@@ -235,10 +242,12 @@ class Build:
 
 ########################### TESTING BLOCK ###########################
 def main():
-    # testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
-    testdf = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
-    annots = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
-    # annots = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
+    testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
+    annots = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
+
+    # testdf = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Datasets/10uM/10uM_concats_complete/TargetMol_10uM_NoPMA_plateConcat_HD.csv"
+    # annots = "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/Annotations/TM_GPT-4_Annots_final.csv"
+
     annots = pd.read_csv(annots, engine="pyarrow")
     testData = pd.read_csv(testdf, index_col=0, engine="pyarrow")
     print(testData.shape)
@@ -259,7 +268,9 @@ def main():
         classesCol="GPT-4 Acronym",
     )
     refDist = b.build()
+    b.to_pickle("test.csv.pkl")
     print(b.getRefDist)
+    print(refDist)
 
 
 if __name__ == "__main__":
