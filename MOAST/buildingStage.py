@@ -204,7 +204,7 @@ class Build:
         refDist = pd.DataFrame(refDist.tolist(), index=refDist.index).T
         refDist.index = nullModel.index
 
-        ###### TODO: ADD CLASS AGG ######
+        ###### CLASS AGG ######
         if self.classesDf is not None:
             refDist = self._getClasses(
                 left=refDist, on=self.on, classCol=self.classesCol
@@ -213,7 +213,7 @@ class Build:
             refDist = refDist.groupby(level=self.classesCol).mean()
         self.refDist = refDist
 
-        ###### TODO: Dictionary {className: KDEsupport, PDF} ######
+        ###### Dictionary {className: KDEsupport, PDF} ######
         kdeDict = {}
         for name, row in self.refDist.iterrows():
             kdeRes = kde.FFTKDE(bw="silverman", kernel="gaussian")
@@ -224,7 +224,7 @@ class Build:
             kde_support, kde_pdf = kdeRes.evaluate(len(row))
             kdeDict[name] = (kde_support, kde_pdf)
 
-        ###### TODO: ADD pickle (in MOAST class) ######
+        ###### ADD pickle (in MOAST class) ######
 
         return kdeDict
 

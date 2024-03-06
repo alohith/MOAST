@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import pandas as pd, numpy as np
 from MOAST import Build
+import pyarrow as pa
 
 
 def main():
