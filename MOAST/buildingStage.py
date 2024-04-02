@@ -182,7 +182,7 @@ class Build:
         if self.refDist is not None:
             self.refDist.to_pickle(outPath, compression="gzip", **kwargs)
         else:
-            raise MoastException(message="This class has not been built yet")
+            raise MoastException(message="This has not been built yet")
 
     @property
     def getRefDist(self):
