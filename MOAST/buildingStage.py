@@ -149,8 +149,8 @@ class Build:
         refDist = pairwiseCorrProcess(
             exp_df=self.dataset, ref_df=nullModel, distance=distance
         )
-        refDist = pd.DataFrame(refDist.tolist(), index=refDist.index).T
-        refDist.index = nullModel.index
+        refDist = pd.DataFrame(refDist.tolist(), index=refDist.index)
+        # refDist.index = nullModel.index
 
         ###### CLASS AGG ######
         if self.classesDf is not None:
