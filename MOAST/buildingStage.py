@@ -8,7 +8,9 @@ from numba import jit, prange, njit
 import KDEpy as kde
 import math
 import pyarrow as pa
+
 from .utils import pairwiseCorrProcess
+from auc_roc_class_analysis.auc_roc_toolkit import calcSimMat
 
 
 def drawfromfeatureKDE(
@@ -146,10 +148,8 @@ class Build:
     def build(self, distance=True):
         nullModel = self._createNull().fillna(0)
 
-        refDist = pairwiseCorrProcess(
-            exp_df=self.dataset, ref_df=nullModel, distance=distance
-        )
-        refDist = pd.DataFrame(refDist.tolist(), index=refDist.index)
+        refDist = calcSimMat(exp_df=self.dataset, ref_df=nullModel, distance=distance)
+        # refDist = pd.DataFrame(refDist.tolist(), index=refDist.index)
         # refDist.index = nullModel.index
 
         ###### CLASS AGG ######

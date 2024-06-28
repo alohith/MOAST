@@ -72,7 +72,6 @@ def main():
     #     break
 
     print(testData.shape)
-
     run = Run(
         exp_set=testData.copy(),
         ref_set=testData,
@@ -85,7 +84,8 @@ def main():
     # res = run._merge_annots(df=run.exp_set)
     # print(res.shape, testData.shape)
     # print(*res.index.get_level_values("AL_CONSOLIDATED"), sep="\n")
-    run.run()
+    res_df = run.run()
+    res_df.to_csv("test_out.csv")
 
 
 if __name__ == "__main__":

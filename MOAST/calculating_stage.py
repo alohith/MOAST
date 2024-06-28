@@ -51,13 +51,13 @@ class Run:
 
         return merge_df
 
-    def run(self, distance: bool = False):
+    def run(self, distance: bool = False) -> pd.DataFrame:
         sim_matrix = calcSimMat(
             exp_df=self.exp_set, ref_df=self.ref_set, distance=distance
         )
 
         ref_classes = {
-            c: {"comps": [], "avg_dist/sim score": []}
+            c: {"comps": []}
             for c in self.exp_set.index.get_level_values(self.classes_col).unique()
         }
         for name, df in self.exp_set.groupby(level=self.classes_col):
@@ -65,11 +65,31 @@ class Run:
 
         # j_str = json.dumps(ref_classes, indent=4)
         # print(j_str)
-
+        res_dict = {
+            "class": [],
+            "compound": [],
+            "avg_dist_score": [],
+            "integral": [],
+            "e-val": [],
+        }
         for k, v in ref_classes.items():
             if len(v["comps"]) > 0:
                 for comp in v["comps"]:
-                    c_comps_mean2Class = np.nanmean(
+                    c_comp_mean2Class = np.nanmean(
                         sim_matrix.loc[comp, v["comps"]].values
                     )
-                    print(c_comps_mean2Class)
+
+                    kde_support, kde_pdf = self.kde_dict[k]
+                    c_comp_integral = np.trapz(
+                        y=kde_pdf[np.where(kde_support < c_comp_mean2Class)],
+                        x=kde_support[np.where(kde_support < c_comp_mean2Class)],
+                    )
+                    e_val = c_comp_integral * len(ref_classes.keys())
+
+                    res_dict["class"].append(k)
+                    res_dict["compound"].append(comp)
+                    res_dict["avg_dist_score"].append(c_comp_mean2Class)
+                    res_dict["integral"].append(c_comp_integral)
+                    res_dict["e-val"].append(e_val)
+        res_df = pd.DataFrame.from_dict(res_dict)
+        return res_df
