@@ -77,6 +77,7 @@ class Run:
             ref_classes[name]["comps"] = list(df.index.get_level_values(0).values)
 
         for held_comp in hold_out_classes.keys():
+            print(held_comp, file=sys.stderr)
             hold_out_classes[held_comp] = {k: [] for k in ref_classes.keys()}
             for c, v in ref_classes.items():
                 held_comp_mean2Class = np.nanmean(
