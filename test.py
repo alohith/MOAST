@@ -116,8 +116,25 @@ def main():
 
     # print(json.dumps(res_dict, indent=4))
     res_df = pd.DataFrame.from_dict(res_dict, orient="columns")
-    res_df.to_csv("1_holdout.csv", index=False)
-    pass
+    # res_df.to_csv("1_holdout.csv", index=False)
+
+    df = res_df.copy()
+    pivot_df = df.pivot(index="held_comp", columns="tested_class", values="avg_dist")
+    annots = pd.read_excel(
+        "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Annotations/reducedKey_cytoscapeAnnot.xlsx",
+        sheet_name="reducedKey",
+    )
+    annots_pert = annots.loc[
+        annots["IDname"].isin(pivot_df.index), ["IDname", "AL_CONSOLIDATED"]
+    ].copy()
+    pivot_df.reset_index(inplace=True)
+    merged_df = pd.merge(
+        left=pivot_df, right=annots_pert, left_on="held_comp", right_on="IDname"
+    )
+    merged_df.set_index("held_comp", inplace=True)
+    merged_df.drop(columns="IDname", inplace=True)
+    merged_df = merged_df.groupby("AL_CONSOLIDATED").agg("mean")
+    print(annots_pert)
 
 
 if __name__ == "__main__":
