@@ -27,7 +27,7 @@ import os, sys
 
 #     b = Build(
 #         dataset=testData,
-#         nullData=testNullData,
+#         # nullData=testNullData,
 #         classesDf=annots,
 #         on="IDname",
 #         classesCol="AL_CONSOLIDATED",
@@ -54,10 +54,13 @@ def main():
     annots = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Annotations/reducedKey_cytoscapeAnnot.xlsx"
     picklFile = "/home/derfelt/gitRepos/MOAST/test.csv.pkl.gzip"
 
-    refDf = pd.read_pickle(picklFile, compression="gzip")
+    # refDf = pd.read_pickle(picklFile, compression="gzip")
     annots = pd.read_excel(annots)
-    testData = pd.read_csv(testdf, index_col=0)
-    testData.index.name = "id"
+    ref_set = pd.read_csv(testdf, index_col=0)
+    ref_set.index.name = "id"
+
+    exp_set = ref_set.copy()
+    # class_counts = exp_set.index.get_level_values("AL_CONSOLIDATED")
     # print(testData)
     # print(testData.index, refDf.shape)
     # print(annots)
@@ -71,10 +74,10 @@ def main():
     #     print(len(v))
     #     break
 
-    print(testData.shape)
+    # print(testData.shape)
     run = Run(
-        exp_set=testData.copy(),
-        ref_set=testData,
+        exp_set=exp_set,
+        ref_set=ref_set,
         kde_dict=kde_dict,
         annots=annots,
         on="IDname",
@@ -85,7 +88,7 @@ def main():
     # print(res.shape, testData.shape)
     # print(*res.index.get_level_values("AL_CONSOLIDATED"), sep="\n")
     res_df = run.run()
-    res_df.to_csv("test_out.csv")
+    # res_df.to_csv("test_out.csv")
 
 
 if __name__ == "__main__":
