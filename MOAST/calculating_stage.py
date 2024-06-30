@@ -61,7 +61,7 @@ class Run:
 
         return merge_df
 
-    def run(self, distance: bool = True) -> pd.DataFrame:
+    def run(self, distance: bool = True) -> tuple[dict, pd.DataFrame]:
         sim_matrix = calcSimMat(
             exp_df=self.exp_set, ref_df=self.ref_set, distance=distance
         )
@@ -96,10 +96,29 @@ class Run:
                     "e-val": held_comp_eval,
                 }
 
-        print(
-            json.dumps({k[0]: v for k, v in hold_out_classes.items()}, indent=4),
-            file=sys.stdout,
-        )
+        res_dict = {
+            "held_comp": [],
+            "held_class": [],
+            "tested_class": [],
+            "avg_dist": [],
+            "p-val": [],
+            "e-val": [],
+        }
+        for (held_comp, held_class), class_dict in hold_out_classes.items():
+            for class_test, res_info in class_dict.items():
+                res_dict["held_comp"].append(held_comp)
+                res_dict["held_class"].append(held_class)
+                res_dict["tested_class"].append(class_test)
+                res_dict["avg_dist"].append(res_info["avg_dist"])
+                res_dict["p-val"].append(res_info["p-val"])
+                res_dict["e-val"].append(res_info["e-val"])
+
+        return hold_out_classes, pd.DataFrame.from_dict(res_dict, orient="columns")
+
+        # print(
+        #     json.dumps({k[0]: v for k, v in hold_out_classes.items()}, indent=4),
+        #     file=sys.stdout,
+        # )
 
         # j_str = json.dumps(ref_classes, indent=4)
         # print(j_str)
@@ -134,11 +153,3 @@ class Run:
         #             res_dict["e-val"].append(e_val)
         # res_df = pd.DataFrame.from_dict(res_dict)
         # return res_df
-
-
-######### VALIDATION
-
-# Random sample from og ref_set (10%) -> This will be out exp set
-# Do the above n times
-
-# call run on the above
