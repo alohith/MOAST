@@ -115,41 +115,49 @@ class Run:
 
         return hold_out_classes, pd.DataFrame.from_dict(res_dict, orient="columns")
 
-        # print(
-        #     json.dumps({k[0]: v for k, v in hold_out_classes.items()}, indent=4),
-        #     file=sys.stdout,
-        # )
 
-        # j_str = json.dumps(ref_classes, indent=4)
-        # print(j_str)
-        # res_dict = {
-        #     "class": [],
-        #     "compound": [],
-        #     "avg_dist_score": [],
-        #     "integral": [],
-        #     "e-val": [],
-        # }
-        # for k, v in ref_classes.items():
-        #     if len(v["comps"]) > 0:
-        #         # for k in ref_classes.keys(): another loop to test all classes
-        #         for comp in v["comps"]:
-        #             c_comp_mean2Class = np.nanmean(
-        #                 sim_matrix.loc[
-        #                     comp, v["comps"]
-        #                 ].values  # change this to call cols in row
-        #             )
+def square_form(holdout_csv: pd.DataFrame) -> pd.DataFrame:
+    piv_df = holdout_csv.pivot(
+        index=["held_comp", "held_class"], columns="tested_class", values="avg_dist"
+    ).reset_index("held_comp", drop=True)
 
-        #             kde_support, kde_pdf = self.kde_dict[k]
-        #             c_comp_integral = np.trapz(
-        #                 y=kde_pdf[np.where(kde_support < c_comp_mean2Class)],
-        #                 x=kde_support[np.where(kde_support < c_comp_mean2Class)],
-        #             )
-        #             e_val = c_comp_integral * len(ref_classes.keys())
+    return piv_df.groupby(level="held_class").agg("mean")
 
-        #             res_dict["class"].append(k)
-        #             res_dict["compound"].append(comp)
-        #             res_dict["avg_dist_score"].append(c_comp_mean2Class)
-        #             res_dict["integral"].append(c_comp_integral)
-        #             res_dict["e-val"].append(e_val)
-        # res_df = pd.DataFrame.from_dict(res_dict)
-        # return res_df
+    # print(
+    #     json.dumps({k[0]: v for k, v in hold_out_classes.items()}, indent=4),
+    #     file=sys.stdout,
+    # )
+
+    # j_str = json.dumps(ref_classes, indent=4)
+    # print(j_str)
+    # res_dict = {
+    #     "class": [],
+    #     "compound": [],
+    #     "avg_dist_score": [],
+    #     "integral": [],
+    #     "e-val": [],
+    # }
+    # for k, v in ref_classes.items():
+    #     if len(v["comps"]) > 0:
+    #         # for k in ref_classes.keys(): another loop to test all classes
+    #         for comp in v["comps"]:
+    #             c_comp_mean2Class = np.nanmean(
+    #                 sim_matrix.loc[
+    #                     comp, v["comps"]
+    #                 ].values  # change this to call cols in row
+    #             )
+
+    #             kde_support, kde_pdf = self.kde_dict[k]
+    #             c_comp_integral = np.trapz(
+    #                 y=kde_pdf[np.where(kde_support < c_comp_mean2Class)],
+    #                 x=kde_support[np.where(kde_support < c_comp_mean2Class)],
+    #             )
+    #             e_val = c_comp_integral * len(ref_classes.keys())
+
+    #             res_dict["class"].append(k)
+    #             res_dict["compound"].append(comp)
+    #             res_dict["avg_dist_score"].append(c_comp_mean2Class)
+    #             res_dict["integral"].append(c_comp_integral)
+    #             res_dict["e-val"].append(e_val)
+    # res_df = pd.DataFrame.from_dict(res_dict)
+    # return res_df

@@ -4,7 +4,7 @@ import pandas as pd, numpy as np
 import os, sys
 from .buildingStage import Build
 from .genSimMats import GenSimMats
-from .calculating_stage import Run
+from .calculating_stage import Run, square_form
 
 ####### TODO: MOAST GOES HERE #######
 
