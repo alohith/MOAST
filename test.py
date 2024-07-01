@@ -3,7 +3,7 @@ import pandas as pd, numpy as np, joblib
 from MOAST import Build, GenSimMats, Run, square_form
 import pyarrow as pa
 import os, sys, json
-
+from statsmodels.stats.multitest import multipletests
 
 # def main():
 #     testdf = "/mnt/c/Users/derfelt/Desktop/LokeyLabFiles/TargetMol/Datasets/FeatureReducedHD/TM_1-27_1+10_full_0.8_horiztacked.csv"
@@ -136,8 +136,38 @@ def main():
     # merged_df.drop(columns="IDname", inplace=True)
     # merged_df = merged_df.groupby("AL_CONSOLIDATED").agg("mean")
     # print(annots_pert)
+    kde_dict = joblib.load("kdeDict.pkl.gz")
+
     df = pd.read_csv("1_holdout_raw.csv")
-    print(square_form(df))
+    _, adj_pvals, _, _ = multipletests(df["p-val"].values, method="fdr_bh")
+    df["adjusted p-vals"] = adj_pvals
+    df[df["adjusted p-vals"] <= 0.05].to_csv("test_out.csv")
+    sq_df = square_form(df, p_val=True, kde_dict=kde_dict)
+    # sq_df = sq_df.apply(
+    #     lambda x: integrateKDE(clname=x.name, avg_dists=x, class_KDE=kde_dict)
+    # )  # get p-vals from sq form
+    # take DIAGONAL (5ht vs 5ht for instance) to be the overall class p-val
+    # adjust, then compare
+
+    print(sq_df)
+
+    stack_df = sq_df.stack().to_frame().reset_index()
+    stack_df = stack_df[stack_df["held_class"] == stack_df["tested_class"]]
+    stack_df.drop("tested_class", axis=1, inplace=True)
+    stack_df.to_csv("p_val_comparison.csv", index=False)
+    print(stack_df)
+
+
+def integrateKDE(clname: str, avg_dists, class_KDE: dict):
+    kde_support, kde_pdf = class_KDE[clname]
+    res = []
+    for x in avg_dists:
+        integral = np.trapz(
+            y=kde_pdf[np.where(kde_support < x)],
+            x=kde_support[np.where(kde_support < x)],
+        )
+        res.append(integral)
+    return res
 
 
 if __name__ == "__main__":

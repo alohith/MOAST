@@ -66,7 +66,9 @@ class Run:
             exp_df=self.exp_set, ref_df=self.ref_set, distance=distance
         )
 
-        hold_out_classes = self.exp_set.sample(frac=0.1, replace=False, axis="index")
+        hold_out_classes = self.exp_set.sample(
+            frac=0.1, replace=False, axis="index", random_state=15
+        )
         hold_out_classes = {k: [] for k in hold_out_classes.index}
 
         ref_classes = {
@@ -116,12 +118,35 @@ class Run:
         return hold_out_classes, pd.DataFrame.from_dict(res_dict, orient="columns")
 
 
-def square_form(holdout_csv: pd.DataFrame) -> pd.DataFrame:
+def square_form(
+    holdout_csv: pd.DataFrame, p_val=False, kde_dict: dict = None
+) -> pd.DataFrame:
+    from . import MoastException
+
     piv_df = holdout_csv.pivot(
         index=["held_comp", "held_class"], columns="tested_class", values="avg_dist"
     ).reset_index("held_comp", drop=True)
+    return_df = piv_df.groupby(level="held_class").agg("mean")
 
-    return piv_df.groupby(level="held_class").agg("mean")
+    if p_val:
+        if kde_dict is None:
+            raise MoastException("a kde_dict needs to be provided")
+
+        def integrate_KDE(cl_name: str, avg_dists: np.array, kde_dict: dict):
+            kde_support, kde_pdf = kde_dict[cl_name]
+            res = []
+            for x in avg_dists:
+                integral = np.trapz(
+                    y=kde_pdf[np.where(kde_support < x)],
+                    x=kde_support[np.where(kde_support < x)],
+                )
+                res.append(integral)
+            return res
+
+        return_df = return_df.apply(
+            lambda x: integrate_KDE(cl_name=x.name, avg_dists=x, kde_dict=kde_dict)
+        )
+    return return_df
 
     # print(
     #     json.dumps({k[0]: v for k, v in hold_out_classes.items()}, indent=4),
