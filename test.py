@@ -136,38 +136,37 @@ def main():
     # merged_df.drop(columns="IDname", inplace=True)
     # merged_df = merged_df.groupby("AL_CONSOLIDATED").agg("mean")
     # print(annots_pert)
-    kde_dict = joblib.load("kdeDict.pkl.gz")
+    # kde_dict = joblib.load("kdeDict.pkl.gz")
 
-    df = pd.read_csv("1_holdout_raw.csv")
-    _, adj_pvals, _, _ = multipletests(df["p-val"].values, method="fdr_bh")
-    df["adjusted p-vals"] = adj_pvals
-    df[df["adjusted p-vals"] <= 0.05].to_csv("test_out.csv")
-    sq_df = square_form(df, p_val=True, kde_dict=kde_dict)
+    # df = pd.read_csv("1_holdout_raw.csv")
+    # _, adj_pvals, _, _ = multipletests(df["p-val"].values, method="fdr_bh")
+    # df["adjusted p-vals"] = adj_pvals
+    # df[df["adjusted p-vals"] <= 0.05].to_csv("test_out.csv")
+    # sq_df = square_form(df, p_val=True, kde_dict=kde_dict)
     # sq_df = sq_df.apply(
     #     lambda x: integrateKDE(clname=x.name, avg_dists=x, class_KDE=kde_dict)
     # )  # get p-vals from sq form
-    # take DIAGONAL (5ht vs 5ht for instance) to be the overall class p-val
+    # # take DIAGONAL (5ht vs 5ht for instance) to be the overall class p-val
     # adjust, then compare
 
-    print(sq_df)
+    # print(sq_df)
 
-    stack_df = sq_df.stack().to_frame().reset_index()
-    stack_df = stack_df[stack_df["held_class"] == stack_df["tested_class"]]
-    stack_df.drop("tested_class", axis=1, inplace=True)
-    stack_df.to_csv("p_val_comparison.csv", index=False)
-    print(stack_df)
+    # stack_df = sq_df.stack().to_frame().reset_index()
+    # stack_df = stack_df[stack_df["held_class"] == stack_df["tested_class"]]
+    # stack_df.drop("tested_class", axis=1, inplace=True)
+    # stack_df.to_csv("p_val_comparison.csv", index=False)
+    # print(stack_df)
 
-
-def integrateKDE(clname: str, avg_dists, class_KDE: dict):
-    kde_support, kde_pdf = class_KDE[clname]
-    res = []
-    for x in avg_dists:
-        integral = np.trapz(
-            y=kde_pdf[np.where(kde_support < x)],
-            x=kde_support[np.where(kde_support < x)],
-        )
-        res.append(integral)
-    return res
+    df = pd.read_csv(
+        "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/auc-roc_research/auc and MOAST comparison/p_val_comparison.csv",
+        index_col=0,
+    )
+    _, adj_p_vals, _, _ = multipletests(df["p-vals"].values, method="fdr_bh")
+    df["adjusted p-vals"] = adj_p_vals
+    df.to_csv(
+        "/Users/dterciano/Desktop/LokeyLabFiles/TargetMol/auc-roc_research/auc and MOAST comparison/p_val_comparison.csv"
+    )
+    print(df)
 
 
 if __name__ == "__main__":
