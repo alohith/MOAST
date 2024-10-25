@@ -1,0 +1,10 @@
+Model,Accuracy,AUC,Recall,Prec.,F1,Kappa,MCC,Top 5 Accuracy,Balanced Accuracy,TT (Sec),Dataset
+CatBoost Classifier,0.2053,0,0.2053,0.1134,0.1222,0.1236,0.1415,0,0,2286.712,noPMA_1176Features
+CatBoost Classifier,0.1983,0,0.1983,0.1005,0.1162,0.1165,0.1323,0,0.0198,1764.154,PMA_1176Features
+CatBoost Classifier,,,,,,,,,,,PMA+noPMA_2352Features
+CatBoost Classifier,0.1588,0,0.1588,0.094,0.1108,0.0957,0.1002,0,0.0195,,UMAP01_noPMA_100Features
+CatBoost Classifier,0.1663,0,0.1663,0.0931,0.1099,0.1003,0.1055,0,0.019,805.75,UMAP01_PMA_100Features
+CatBoost Classifier,0.2038,0,0.2038,0.1426,0.1585,0.1495,0.1573,0,0.0217,751.96,Horiz_UMAP01_PMA+noPMA_100Features
+CatBoost Classifier,0.2007,0,0.2007,0.1028,0.1176,0.119,0.1353,0,0.0198,1225.154,FeatRed08_PMA_482Features
+CatBoost Classifier,0.2008,0,0.2008,0.1053,0.1182,0.1181,0.1363,0,0.0216,1231.968,FeatRed08_noPMA_482Features
+CatBoost Classifier,0.243,0,0.243,0.1675,0.1729,0.173,0.2079,0,0.0236,,FeatRed08_PMA+noPMA_964Features
