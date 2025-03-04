@@ -24,4 +24,4 @@ This project is licensed under the MIT License.
 
 ## Contact
 
-For any inquiries, reach out via GitHub Issues or contact **alohith**.
+For any inquiries, reach out via GitHub Issues.
