@@ -12,7 +12,7 @@ Check out the MOAST chapter from my [dissertation](https://escholarship.org/uc/i
 
 Check out "KDEdraws\_fakeBLAST\_BayesianClassifier.ipynb" notebook for development of the KDE integration approach initially conceived and implemented as part of the installable package source.
 
-The notebook "MOAST\_pycaretMLtesting.ipynb" contains the development of the pivot to a formal Machine-Learning implementation for the same task that I evaluated to perform better.
+The notebook "MOAST\_pycaretMLtesting.ipynb" contains the development of the pivot to a formal Machine-Learning implementation (using CatBoost Classifier) for the same task that I evaluated to perform better.
 
 ## Contribution
 
