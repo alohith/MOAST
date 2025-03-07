@@ -6,7 +6,7 @@ MOAST (Mechanism of Action Similarity Tool) is a project, inspired by the popula
 
 ## Evaluation Story
 
-Check out the MOAST chapter from my [dissertation](https://escholarship.org/uc/item/572197kr)) or the preprint excerpt (biorxive.) for details on rational and validation I performed on the method using data from High-Content Image-based screens.
+Check out the MOAST chapter from my [dissertation](https://escholarship.org/uc/item/572197kr)) or the preprint excerpt (biorxiv to come) for details on rational and validation I performed on the method using data from High-Content Image-based screens.
 
 ## Development Notebooks
 
